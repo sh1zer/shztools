@@ -79,7 +79,7 @@ export default function MyToolPage() {
 Add one entry to `toolPages` in `web/src/tools/registry.ts`. Pages are
 lazy-loaded and routed at `/t/<id>`.
 
-`<JobRunner>` gives you status, progress bar, live log and artifact downloads —
+`<JobRunner>` gives you status, progress, live log and artifact downloads —
 you never write that plumbing per tool.
 
 ## Design
@@ -92,7 +92,7 @@ shared kit (`web/src/ui/`) so they stay coherent:
 - `ui/kit.css` — styles for the shared classes.
 - `ui/theme.ts` — theme state, persisted to `localStorage`.
 - `ui/index.tsx` — `PageShell`, `Panel`, `Field`, `Button`, `JobRunner`,
-  `LogView`, `Progress`, `StatusPill`, `Artifacts`, `ThemeSwitcher`.
+  `LogView`, `Progress`, `Status`, `Artifacts`, `ThemeSwitcher`.
 
 The rules the tokens encode, so you don't undo them by accident:
 

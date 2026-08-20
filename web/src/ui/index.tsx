@@ -1,11 +1,10 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { formatBytes, api } from "../api";
+import { formatBytes, api, type JobState } from "../api";
 import type { JobView } from "./useJob";
+import { useTheme } from "./theme";
 
 export { useJob } from "./useJob";
 export type { JobView } from "./useJob";
-import { useTheme } from "./theme";
-
 export { useTheme, THEMES } from "./theme";
 export type { Theme } from "./theme";
 
@@ -83,12 +82,26 @@ export function Button({
   return <button {...props} className={`btn btn-${variant} ${props.className ?? ""}`} />;
 }
 
+/** The live/terminal partition of the job state machine, in one place.
+ *  A total map over JobState, so adding a state on the server fails the build
+ *  here rather than silently rendering as unstyled text -- and the CSS keys
+ *  off the tone, so it never enumerates states at all. */
+const TONE: Record<JobState | "idle", "live" | "ok" | "warn" | "err" | null> = {
+  idle: null,
+  queued: "live",
+  running: "live",
+  succeeded: "ok",
+  cancelled: "warn",
+  failed: "err",
+};
+
 /** Bracketed mono status: `[ RUNNING ]`. Brackets blink while live, which is
  *  what signals a job is alive now that there is no progress bar. */
-export function StatusPill({ state }: { state: string }) {
-  if (state === "idle") return null;
+export function Status({ state }: { state: JobState | "idle" }) {
+  const tone = TONE[state];
+  if (!tone) return null;
   return (
-    <span className={`status status-${state}`}>
+    <span className="status" data-tone={tone}>
       <span className="bracket">[</span> {state.toUpperCase()} <span className="bracket">]</span>
     </span>
   );
@@ -96,13 +109,9 @@ export function StatusPill({ state }: { state: string }) {
 
 /** Progress is a number, not a bar. `fraction` is null until a tool reports one. */
 export function Progress({ fraction, label }: { fraction: number | null; label?: string | null }) {
-  const pct = fraction == null ? null : `${(fraction * 100).toFixed(1)}%`;
-  if (!pct && !label) return null;
-  return (
-    <span className="status-meta">
-      {[pct, label].filter(Boolean).join(" · ")}
-    </span>
-  );
+  const parts = [fraction == null ? null : `${(fraction * 100).toFixed(1)}%`, label].filter(Boolean);
+  if (!parts.length) return null;
+  return <span className="status-meta">{parts.join(" · ")}</span>;
 }
 
 /** Auto-scrolling log view, pinned to the bottom unless the user scrolls up. */
@@ -157,8 +166,8 @@ export function JobRunner({ job, onCancel }: { job: JobView; onCancel?: () => vo
   return (
     <Panel title="Run">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <div className="row" style={{ gap: "var(--s2)" }}>
-          <StatusPill state={job.state} />
+        <div className="row row-tight">
+          <Status state={job.state} />
           <Progress fraction={job.running ? job.fraction : null} label={job.label} />
         </div>
         {job.running && onCancel && (

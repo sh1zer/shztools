@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
 export const THEMES = ["dark", "light", "gruvbox"] as const;
 export type Theme = (typeof THEMES)[number];
@@ -28,6 +28,20 @@ function read(): Theme {
 let current: Theme = read();
 const listeners = new Set<() => void>();
 
+/* Module scope, not per-render closures: useSyncExternalStore compares the
+   subscribe identity, and these capture nothing render-specific. */
+function subscribe(onChange: () => void): () => void {
+  listeners.add(onChange);
+  return () => {
+    listeners.delete(onChange);
+  };
+}
+
+function getSnapshot(): Theme {
+  return current;
+}
+
+/** Commits a user's choice: updates the DOM, persists, and notifies. */
 function apply(theme: Theme): void {
   current = theme;
   document.documentElement.dataset.theme = theme;
@@ -39,25 +53,19 @@ function apply(theme: Theme): void {
   listeners.forEach((fn) => fn());
 }
 
-// Runs at import so <html> is correct even if the pre-paint script was blocked.
-apply(current);
+export function cycle(): void {
+  apply(THEMES[(THEMES.indexOf(current) + 1) % THEMES.length]);
+}
+
+/* The pre-paint script in index.html has normally set this already. Sync only
+   if it was blocked or stored nothing -- writing back a value we just read
+   would persist nothing new and invalidate document style before first
+   render. */
+if (document.documentElement.dataset.theme !== current) {
+  document.documentElement.dataset.theme = current;
+}
 
 /** Deliberately ignores prefers-color-scheme: the preference is explicit. */
 export function useTheme(): { theme: Theme; cycle: () => void } {
-  const theme = useSyncExternalStore(
-    (onChange) => {
-      listeners.add(onChange);
-      return () => {
-        listeners.delete(onChange);
-      };
-    },
-    () => current,
-  );
-
-  const cycle = useCallback(
-    () => apply(THEMES[(THEMES.indexOf(current) + 1) % THEMES.length]),
-    [],
-  );
-
-  return { theme, cycle };
+  return { theme: useSyncExternalStore(subscribe, getSnapshot), cycle };
 }

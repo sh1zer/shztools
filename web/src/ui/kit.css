@@ -34,11 +34,15 @@
   flex-direction: column;
   gap: 1px;
 }
-.nav-label {
+/* The uppercase eyebrow label, one role with two placements. */
+.nav-label,
+.panel-title {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-faint);
+}
+.nav-label {
   margin-bottom: var(--s2);
 }
 .nav a {
@@ -90,18 +94,14 @@
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: var(--s5);
   display: flex;
   flex-direction: column;
   gap: var(--s4);
 }
 .panel-title {
-  font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-faint);
 }
 
 /* ---- field ---- */
@@ -186,38 +186,46 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.row-tight {
+  gap: var(--s2);
+}
 
 /* ---- status ---- */
 /* Bracketed mono text, no container. Hue is load-bearing here and nowhere
-   else: this is what you scan a job list for. */
-.status {
+   else: this is what you scan a job list for.
+   .status and .status-meta render adjacent in the run header, and .log sits
+   directly below, so they share one mono ramp -- --text-dim rather than
+   --faint, since all three carry data. */
+.status,
+.status-meta,
+.log {
   font-family: var(--mono);
   font-size: 12.5px;
-  letter-spacing: 0.06em;
   color: var(--text-dim);
+}
+.status {
+  letter-spacing: 0.06em;
   white-space: nowrap;
 }
 .status .bracket {
   opacity: 0.55;
 }
-.status-running,
-.status-queued {
+.status[data-tone="live"] {
   color: var(--text);
 }
-.status-succeeded {
+.status[data-tone="ok"] {
   color: var(--ok);
 }
-.status-failed {
-  color: var(--err);
-}
-.status-cancelled {
+.status[data-tone="warn"] {
   color: var(--warn);
 }
+.status[data-tone="err"] {
+  color: var(--err);
+}
 /* Liveness lives here, since there is no progress bar to animate. Queued is
-   included: a job awaiting its POST would otherwise sit motionless and be
+   live too: a job awaiting its POST would otherwise sit motionless and be
    indistinguishable from a frozen page. */
-.status-running .bracket,
-.status-queued .bracket {
+.status[data-tone="live"] .bracket {
   animation: blink 1.4s steps(1, end) infinite;
 }
 @keyframes blink {
@@ -228,18 +236,12 @@
 /* A hard on/off flash runs for the whole life of a job, so it needs an opt-out
    (WCAG 2.2.2). Reduced motion keeps the brackets dimmed but static. */
 @media (prefers-reduced-motion: reduce) {
-  .status-running .bracket,
-  .status-queued .bracket {
+  .status[data-tone="live"] .bracket {
     animation: none;
   }
 }
 
-/* Carries the progress percentage, which is data: --text-dim, not --faint. */
-.status-meta {
-  font-family: var(--mono);
-  font-size: 12.5px;
-  color: var(--text-dim);
-}
+
 
 /* ---- log ---- */
 .log {
@@ -247,10 +249,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--s3);
-  font-family: var(--mono);
-  font-size: 12.5px;
   line-height: 1.6;
-  color: var(--text-dim);
   max-height: 320px;
   overflow: auto;
   white-space: pre-wrap;
@@ -294,7 +293,7 @@
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   padding: var(--s4);
   display: flex;
   flex-direction: column;

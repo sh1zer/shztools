@@ -96,9 +96,9 @@
   --s6: 32px;
   --s7: 48px;
 
-  /* Square by decision. Bump to 2px if you ever change your mind. */
+  /* Square by decision, and genuinely one knob: every rounded corner in the
+     kit reads this. Bump it to 2px if you ever change your mind. */
   --radius: 0px;
-  --radius-lg: 0px;
 
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
