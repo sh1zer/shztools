@@ -87,11 +87,26 @@ you never write that plumbing per tool.
 Pages are hand-written so tools can look however they need, but they compose a
 shared kit (`web/src/ui/`) so they stay coherent:
 
-- `ui/tokens.css` — colour, spacing, type, radius. **Never hardcode a hex in a
-  tool page**; add or use a token.
+- `ui/tokens.css` — colour, spacing, type, radius, and all three themes.
+  **Never hardcode a hex, a radius or a font in a tool page**; use a token.
 - `ui/kit.css` — styles for the shared classes.
+- `ui/theme.ts` — theme state, persisted to `localStorage`.
 - `ui/index.tsx` — `PageShell`, `Panel`, `Field`, `Button`, `JobRunner`,
-  `LogView`, `Progress`, `StatusPill`, `Artifacts`.
+  `LogView`, `Progress`, `StatusPill`, `Artifacts`, `ThemeSwitcher`.
+
+The rules the tokens encode, so you don't undo them by accident:
+
+| Decision | |
+| --- | --- |
+| **Monochrome by default** | dark neutral greys, `#141414` page. Themes: dark · light · gruvbox material, cycled from the sidebar footer. `prefers-color-scheme` is deliberately ignored. |
+| **Square corners** | `--radius: 0`. A developer knob, not a UI setting — set it to `2px` and the whole toolkit softens. |
+| **Structure from borders** | 1px borders plus background value steps. No shadows. |
+| **Hue is reserved for run status** | `--ok` / `--warn` / `--err` and nothing else. It's what you scan a job list for, so spending it on decoration devalues it. |
+| **Primary means inverted** | `--accent` is the *foreground* colour in the mono themes and the aqua in gruvbox, so one rule gives an inverted button in mono and an accented one in gruvbox. |
+| **Progress is a number** | no bar. Liveness comes from the blinking brackets in `[ RUNNING ]`, which also covers tools that never report a fraction. |
+
+Adding a theme is a block of token overrides under
+`:root[data-theme="name"]` plus an entry in `THEMES`.
 
 ## Config
 

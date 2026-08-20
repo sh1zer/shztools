@@ -1,30 +1,89 @@
-/* Design tokens. Every tool page pulls colour, spacing and type from here --
-   change a value once and the whole toolkit follows. Tool pages should never
-   hardcode a hex value. */
+/* Design tokens.
+ *
+ * Three themes, one token contract. A tool page must never hardcode a colour,
+ * a radius or a font -- read a token, and every theme follows for free.
+ *
+ * Rules this palette encodes:
+ *   - Monochrome is the baseline. Hue is reserved for run status, nothing else.
+ *   - --accent is the foreground colour in the mono themes, so "accented" and
+ *     "inverted" are the same thing there. Gruvbox sets a real hue and the
+ *     accent lights up without any component knowing a theme changed.
+ *   - Corners are square. --radius is a developer knob, not a UI setting:
+ *     set it to 2px here and the whole toolkit softens.
+ */
 
-:root {
+:root,
+:root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* surfaces, dark to light */
-  --bg: #0e1013;
-  --surface: #16191e;
-  --surface-2: #1d2128;
-  --border: #2a2f38;
-  --border-strong: #3a4150;
+  --bg: #141414;
+  --surface: #1a1a1a;
+  --surface-2: #232323;
+  --border: #2e2e2e;
+  --border-strong: #3d3d3d;
 
-  /* text */
-  --text: #e6e9ef;
-  --text-dim: #9aa3b2;
-  --text-faint: #6b7381;
+  --text: #e8e8e8;
+  --text-dim: #a0a0a0;
+  --text-faint: #6e6e6e;
 
-  /* accents */
-  --accent: #5b8cff;
-  --accent-hover: #74a0ff;
-  --accent-quiet: #1e2a45;
-  --ok: #46c88a;
-  --warn: #e0b341;
-  --err: #f2605e;
+  /* Mono themes have no accent hue: primary == inverted. */
+  --accent: #e8e8e8;
+  --accent-fg: #141414;
+  --accent-quiet: #232323;
 
+  /* The one exception to monochrome, desaturated to sit with the greys. */
+  --ok: #7fa06a;
+  --warn: #b8963f;
+  --err: #c25a56;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f0f0f0;
+  --border: #e2e2e2;
+  --border-strong: #c6c6c6;
+
+  --text: #1a1a1a;
+  --text-dim: #5a5a5a;
+  --text-faint: #8a8a8a;
+
+  --accent: #1a1a1a;
+  --accent-fg: #fafafa;
+  --accent-quiet: #ededed;
+
+  --ok: #3f7a45;
+  --warn: #8a6d1f;
+  --err: #a83a36;
+}
+
+/* gruvbox material -- lifted from ~/.config/omarchy/current/theme/colors.toml
+   so the toolkit matches the terminal it was built in. */
+:root[data-theme="gruvbox"] {
+  color-scheme: dark;
+
+  --bg: #282828;
+  --surface: #32302f;
+  --surface-2: #3c3836;
+  --border: #45403d;
+  --border-strong: #5a524c;
+
+  --text: #d4be98;
+  --text-dim: #a89984;
+  --text-faint: #7c6f64;
+
+  --accent: #7daea3;
+  --accent-fg: #282828;
+  --accent-quiet: #3c3836;
+
+  --ok: #a9b665;
+  --warn: #d8a657;
+  --err: #ea6962;
+}
+
+:root {
   /* spacing scale */
   --s1: 4px;
   --s2: 8px;
@@ -34,13 +93,12 @@
   --s6: 32px;
   --s7: 48px;
 
-  --radius: 8px;
-  --radius-lg: 12px;
+  /* Square by decision. Bump to 2px if you ever change your mind. */
+  --radius: 0px;
+  --radius-lg: 0px;
 
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
-
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 * {
@@ -64,11 +122,8 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--text);
   text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
 }
 
 :focus-visible {

@@ -1,5 +1,6 @@
-/* Shared component styles. Tool pages compose these classes rather than
-   inventing their own visual language. */
+/* Shared component styles.
+   Structure comes from 1px borders plus background value steps; nothing is
+   rounded, and nothing outside .status carries a hue. */
 
 /* ---- layout ---- */
 .app {
@@ -25,13 +26,13 @@
   color: var(--text);
 }
 .brand span {
-  color: var(--accent);
+  color: var(--text-faint);
 }
 
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 .nav-label {
   font-size: 11px;
@@ -42,18 +43,23 @@
 }
 .nav a {
   padding: var(--s2) var(--s3);
-  border-radius: var(--radius);
+  border-left: 2px solid transparent;
   color: var(--text-dim);
   font-size: 14px;
 }
 .nav a:hover {
   background: var(--surface-2);
   color: var(--text);
-  text-decoration: none;
 }
+/* Active state is a bright edge plus a value shift -- no accent fill. */
 .nav a.active {
   background: var(--accent-quiet);
+  border-left-color: var(--accent);
   color: var(--text);
+}
+
+.sidebar-foot {
+  margin-top: auto;
 }
 
 .main {
@@ -91,10 +97,10 @@
   gap: var(--s4);
 }
 .panel-title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   color: var(--text-faint);
 }
 
@@ -134,6 +140,7 @@
 .field .error {
   font-size: 12px;
   color: var(--err);
+  font-family: var(--mono);
 }
 
 /* ---- button ---- */
@@ -149,14 +156,16 @@
   font-size: 14px;
   font-weight: 550;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition: opacity 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
+/* Primary is inverted, not tinted: in mono --accent is the foreground, in
+   gruvbox it is the aqua. Same rule, different theme. */
 .btn-primary {
   background: var(--accent);
-  color: #0b1020;
+  color: var(--accent-fg);
 }
 .btn-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+  opacity: 0.85;
 }
 .btn-ghost {
   background: transparent;
@@ -168,7 +177,7 @@
   border-color: var(--text-faint);
 }
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 .row {
@@ -178,69 +187,45 @@
   flex-wrap: wrap;
 }
 
-/* ---- status pill ---- */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 550;
-  background: var(--surface-2);
+/* ---- status ---- */
+/* Bracketed mono text, no container. Hue is load-bearing here and nowhere
+   else: this is what you scan a job list for. */
+.status {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
   color: var(--text-dim);
+  white-space: nowrap;
 }
-.pill::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
+.status .bracket {
+  opacity: 0.55;
 }
-.pill-running {
-  color: var(--accent);
+.status-running {
+  color: var(--text);
 }
-.pill-running::before {
-  animation: pulse 1s ease-in-out infinite;
-}
-.pill-succeeded {
+.status-succeeded {
   color: var(--ok);
 }
-.pill-failed {
+.status-failed {
   color: var(--err);
 }
-.pill-cancelled {
+.status-cancelled {
   color: var(--warn);
 }
-@keyframes pulse {
+/* Liveness lives here, since there is no progress bar to animate. */
+.status-running .bracket {
+  animation: blink 1.4s steps(1, end) infinite;
+}
+@keyframes blink {
   50% {
-    opacity: 0.25;
+    opacity: 0;
   }
 }
 
-/* ---- progress ---- */
-.progress {
-  height: 4px;
-  background: var(--surface-2);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.progress > div {
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.2s ease;
-}
-.progress.indeterminate > div {
-  width: 35%;
-  animation: slide 1.2s ease-in-out infinite;
-}
-@keyframes slide {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(340%);
-  }
+.status-meta {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--text-faint);
 }
 
 /* ---- log ---- */
@@ -284,6 +269,7 @@
 .artifact .size {
   color: var(--text-faint);
   font-size: 12px;
+  font-family: var(--mono);
 }
 
 /* ---- tool grid (home) ---- */
@@ -301,10 +287,11 @@
   flex-direction: column;
   gap: var(--s2);
   color: inherit;
+  transition: border-color 0.12s ease, background 0.12s ease;
 }
 .card:hover {
   border-color: var(--border-strong);
-  text-decoration: none;
+  background: var(--surface-2);
 }
 .card h3 {
   margin: 0;
@@ -321,6 +308,18 @@
   font-size: 14px;
 }
 
+/* ---- theme switcher ---- */
+.theme-btn {
+  width: 100%;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.theme-btn .value {
+  color: var(--text);
+}
+
 @media (max-width: 720px) {
   .app {
     flex-direction: column;
@@ -334,6 +333,9 @@
   .nav {
     flex-direction: row;
     flex-wrap: wrap;
+  }
+  .sidebar-foot {
+    margin-top: 0;
   }
   .main {
     padding: var(--s4);

@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from "react";
 import { NavLink, Route, Routes } from "react-router-dom";
 import { api, type ToolSpec } from "./api";
 import { toolPages } from "./tools/registry";
-import { PageShell } from "./ui";
+import { PageShell, ThemeSwitcher } from "./ui";
 
 export default function App() {
   // The backend is the source of truth for which tools are actually available;
@@ -33,6 +33,9 @@ export default function App() {
             </NavLink>
           ))}
         </nav>
+        <div className="sidebar-foot">
+          <ThemeSwitcher />
+        </div>
       </aside>
 
       <main className="main">

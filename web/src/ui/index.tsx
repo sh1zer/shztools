@@ -4,6 +4,22 @@ import type { JobView } from "./useJob";
 
 export { useJob } from "./useJob";
 export type { JobView } from "./useJob";
+import { useTheme } from "./theme";
+
+export { useTheme, THEMES } from "./theme";
+export type { Theme } from "./theme";
+
+/** Cycles dark -> light -> gruvbox. Choice is explicit and persisted; the OS
+ *  colour-scheme preference is deliberately ignored. */
+export function ThemeSwitcher() {
+  const { theme, cycle } = useTheme();
+  return (
+    <Button variant="ghost" className="theme-btn" onClick={cycle} title="Change theme">
+      <span>theme</span>
+      <span className="value">{theme}</span>
+    </Button>
+  );
+}
 
 /** Standard page frame: title, optional subtitle, stacked content. */
 export function PageShell({
@@ -67,17 +83,25 @@ export function Button({
   return <button {...props} className={`btn btn-${variant} ${props.className ?? ""}`} />;
 }
 
+/** Bracketed mono status: `[ RUNNING ]`. Brackets blink while live, which is
+ *  what signals a job is alive now that there is no progress bar. */
 export function StatusPill({ state }: { state: string }) {
   if (state === "idle") return null;
-  return <span className={`pill pill-${state}`}>{state}</span>;
+  return (
+    <span className={`status status-${state}`}>
+      <span className="bracket">[</span> {state.toUpperCase()} <span className="bracket">]</span>
+    </span>
+  );
 }
 
-export function Progress({ fraction }: { fraction: number | null }) {
-  const indeterminate = fraction == null;
+/** Progress is a number, not a bar. `fraction` is null until a tool reports one. */
+export function Progress({ fraction, label }: { fraction: number | null; label?: string | null }) {
+  const pct = fraction == null ? null : `${(fraction * 100).toFixed(1)}%`;
+  if (!pct && !label) return null;
   return (
-    <div className={`progress ${indeterminate ? "indeterminate" : ""}`}>
-      <div style={indeterminate ? undefined : { width: `${Math.round(fraction * 100)}%` }} />
-    </div>
+    <span className="status-meta">
+      {[pct, label].filter(Boolean).join(" · ")}
+    </span>
   );
 }
 
@@ -133,9 +157,9 @@ export function JobRunner({ job, onCancel }: { job: JobView; onCancel?: () => vo
   return (
     <Panel title="Run">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <div className="row">
+        <div className="row" style={{ gap: "var(--s2)" }}>
           <StatusPill state={job.state} />
-          {job.label && <span className="hint">{job.label}</span>}
+          <Progress fraction={job.running ? job.fraction : null} label={job.label} />
         </div>
         {job.running && onCancel && (
           <Button variant="ghost" onClick={onCancel}>
@@ -144,7 +168,6 @@ export function JobRunner({ job, onCancel }: { job: JobView; onCancel?: () => vo
         )}
       </div>
 
-      {job.running && <Progress fraction={job.fraction} />}
       {job.error && <div className="field"><span className="error">{job.error}</span></div>}
 
       <LogView lines={job.lines} />

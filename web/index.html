@@ -4,10 +4,17 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="dark" />
     <title>shztools</title>
   </head>
   <body>
+    <script>
+      // Applied before first paint so the stored theme does not flash dark.
+      try {
+        var t = localStorage.getItem("shztools.theme");
+        document.documentElement.dataset.theme =
+          ["dark", "light", "gruvbox"].indexOf(t) >= 0 ? t : "dark";
+      } catch (e) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
