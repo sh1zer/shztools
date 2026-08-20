@@ -8,6 +8,9 @@
  *   - --accent is the foreground colour in the mono themes, so "accented" and
  *     "inverted" are the same thing there. Gruvbox sets a real hue and the
  *     accent lights up without any component knowing a theme changed.
+ *   - Contrast: --text-faint is for labels and placeholders only and must
+ *     clear 4.5:1 on --surface. Anything carrying data (sizes, percentages)
+ *     uses --text-dim, which must clear 4.5:1 on --surface-2.
  *   - Corners are square. --radius is a developer knob, not a UI setting:
  *     set it to 2px here and the whole toolkit softens.
  */
@@ -24,7 +27,7 @@
 
   --text: #e8e8e8;
   --text-dim: #a0a0a0;
-  --text-faint: #6e6e6e;
+  --text-faint: #8f8f8f;
 
   /* Mono themes have no accent hue: primary == inverted. */
   --accent: #e8e8e8;
@@ -48,7 +51,7 @@
 
   --text: #1a1a1a;
   --text-dim: #5a5a5a;
-  --text-faint: #8a8a8a;
+  --text-faint: #6f6f6f;
 
   --accent: #1a1a1a;
   --accent-fg: #fafafa;
@@ -70,9 +73,9 @@
   --border: #45403d;
   --border-strong: #5a524c;
 
-  --text: #d4be98;
-  --text-dim: #a89984;
-  --text-faint: #7c6f64;
+  --text: #ebdbb2;
+  --text-dim: #d4be98;
+  --text-faint: #a89984;
 
   --accent: #7daea3;
   --accent-fg: #282828;

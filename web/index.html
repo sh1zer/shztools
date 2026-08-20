@@ -8,11 +8,14 @@
   </head>
   <body>
     <script>
-      // Applied before first paint so the stored theme does not flash dark.
+      // Applied before first paint so the stored theme does not flash.
+      // Values are not validated here on purpose: keeping a copy of the theme
+      // list in sync with theme.ts is what would eventually cause the flash.
+      // Anything unrecognised falls through to the :root defaults (dark), and
+      // theme.ts corrects it on mount. Key must match KEY in src/ui/theme.ts.
       try {
         var t = localStorage.getItem("shztools.theme");
-        document.documentElement.dataset.theme =
-          ["dark", "light", "gruvbox"].indexOf(t) >= 0 ? t : "dark";
+        if (t) document.documentElement.dataset.theme = t;
       } catch (e) {}
     </script>
     <div id="root"></div>

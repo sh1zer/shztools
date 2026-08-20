@@ -200,7 +200,8 @@
 .status .bracket {
   opacity: 0.55;
 }
-.status-running {
+.status-running,
+.status-queued {
   color: var(--text);
 }
 .status-succeeded {
@@ -212,8 +213,11 @@
 .status-cancelled {
   color: var(--warn);
 }
-/* Liveness lives here, since there is no progress bar to animate. */
-.status-running .bracket {
+/* Liveness lives here, since there is no progress bar to animate. Queued is
+   included: a job awaiting its POST would otherwise sit motionless and be
+   indistinguishable from a frozen page. */
+.status-running .bracket,
+.status-queued .bracket {
   animation: blink 1.4s steps(1, end) infinite;
 }
 @keyframes blink {
@@ -221,11 +225,20 @@
     opacity: 0;
   }
 }
+/* A hard on/off flash runs for the whole life of a job, so it needs an opt-out
+   (WCAG 2.2.2). Reduced motion keeps the brackets dimmed but static. */
+@media (prefers-reduced-motion: reduce) {
+  .status-running .bracket,
+  .status-queued .bracket {
+    animation: none;
+  }
+}
 
+/* Carries the progress percentage, which is data: --text-dim, not --faint. */
 .status-meta {
   font-family: var(--mono);
   font-size: 12.5px;
-  color: var(--text-faint);
+  color: var(--text-dim);
 }
 
 /* ---- log ---- */
@@ -267,7 +280,7 @@
   white-space: nowrap;
 }
 .artifact .size {
-  color: var(--text-faint);
+  color: var(--text-dim);
   font-size: 12px;
   font-family: var(--mono);
 }

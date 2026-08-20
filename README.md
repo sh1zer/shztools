@@ -103,6 +103,7 @@ The rules the tokens encode, so you don't undo them by accident:
 | **Structure from borders** | 1px borders plus background value steps. No shadows. |
 | **Hue is reserved for run status** | `--ok` / `--warn` / `--err` and nothing else. It's what you scan a job list for, so spending it on decoration devalues it. |
 | **Primary means inverted** | `--accent` is the *foreground* colour in the mono themes and the aqua in gruvbox, so one rule gives an inverted button in mono and an accented one in gruvbox. |
+| **Contrast is a constraint** | `--text-faint` is labels and placeholders only and must clear 4.5:1 on `--surface`; anything carrying data (file sizes, percentages) uses `--text-dim`, which must clear 4.5:1 on `--surface-2`. |
 | **Progress is a number** | no bar. Liveness comes from the blinking brackets in `[ RUNNING ]`, which also covers tools that never report a fraction. |
 
 Adding a theme is a block of token overrides under
