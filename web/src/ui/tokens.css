@@ -1,0 +1,77 @@
+/* Design tokens. Every tool page pulls colour, spacing and type from here --
+   change a value once and the whole toolkit follows. Tool pages should never
+   hardcode a hex value. */
+
+:root {
+  color-scheme: dark;
+
+  /* surfaces, dark to light */
+  --bg: #0e1013;
+  --surface: #16191e;
+  --surface-2: #1d2128;
+  --border: #2a2f38;
+  --border-strong: #3a4150;
+
+  /* text */
+  --text: #e6e9ef;
+  --text-dim: #9aa3b2;
+  --text-faint: #6b7381;
+
+  /* accents */
+  --accent: #5b8cff;
+  --accent-hover: #74a0ff;
+  --accent-quiet: #1e2a45;
+  --ok: #46c88a;
+  --warn: #e0b341;
+  --err: #f2605e;
+
+  /* spacing scale */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+
+  --radius: 8px;
+  --radius-lg: 12px;
+
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+uv.lock
+node_modules/
+web/dist/
+data/
+.DS_Store
