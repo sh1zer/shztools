@@ -156,6 +156,10 @@ class JobStore:
         jobs = [j for j in self._jobs.values() if tool is None or j.tool == tool]
         return sorted(jobs, key=lambda j: j.created_at, reverse=True)[:limit]
 
+    def active_ids(self) -> set[str]:
+        """Job ids still writing to disk -- retention must not touch these."""
+        return {j.id for j in self._jobs.values() if j.state not in TERMINAL}
+
     async def cancel(self, job_id: str) -> bool:
         job = self.get(job_id)
         if job is None or job.state in TERMINAL:

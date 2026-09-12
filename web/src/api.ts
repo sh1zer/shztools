@@ -50,8 +50,10 @@ export const api = {
 
   cancel: (id: string) => fetch(`/api/jobs/${id}/cancel`, { method: "POST" }).then(json),
 
-  artifactUrl: (jobId: string, name: string) =>
-    `/api/jobs/${jobId}/artifacts/${encodeURIComponent(name)}`,
+  /** `inline` serves the file without an attachment disposition, so a
+   *  <video> can stream it in place instead of downloading it. */
+  artifactUrl: (jobId: string, name: string, opts?: { inline?: boolean }) =>
+    `/api/jobs/${jobId}/artifacts/${encodeURIComponent(name)}${opts?.inline ? "?inline=1" : ""}`,
 };
 
 export function formatBytes(n: number): string {

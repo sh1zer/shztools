@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -11,12 +12,16 @@ from fastapi.staticfiles import StaticFiles
 from .api import router
 from .config import CORS_ORIGINS, ROOT, ensure_dirs
 from .registry import registry
+from .retention import sweep
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_dirs()
     registry.load()
+    # Walks data/artifacts and may rmtree gigabytes; --reload runs this on
+    # every save, so it does not belong on the event loop.
+    await asyncio.to_thread(sweep)
     yield
 
 

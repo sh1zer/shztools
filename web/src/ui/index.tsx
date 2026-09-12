@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatBytes, api, type JobState } from "../api";
 import type { JobView } from "./useJob";
 import { useTheme } from "./theme";
@@ -20,35 +20,52 @@ export function ThemeSwitcher() {
   );
 }
 
-/** Standard page frame: title, optional subtitle, stacked content. */
+/** Standard page frame: stacked content under an optional header.
+ *  A tool whose name is already in the nav does not need to repeat it, and
+ *  the vertical space is worth more than the restatement -- so every part of
+ *  the header is optional, and with none of them there is no header. */
 export function PageShell({
   title,
   subtitle,
   actions,
+  fill,
   children,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   actions?: ReactNode;
+  /** Fit the viewport rather than scroll: a child marked `panel-fill` then
+   *  takes whatever height the rest of the page leaves. */
+  fill?: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className="page">
-      <header className="page-head row" style={{ justifyContent: "space-between" }}>
-        <div>
-          <h1>{title}</h1>
-          {subtitle && <p>{subtitle}</p>}
-        </div>
-        {actions}
-      </header>
+    <div className={fill ? "page page-fill" : "page"}>
+      {(title || subtitle || actions) && (
+        <header className="page-head row" style={{ justifyContent: "space-between" }}>
+          <div>
+            {title && <h1>{title}</h1>}
+            {subtitle && <p>{subtitle}</p>}
+          </div>
+          {actions}
+        </header>
+      )}
       {children}
     </div>
   );
 }
 
-export function Panel({ title, children }: { title?: string; children: ReactNode }) {
+export function Panel({
+  title,
+  className,
+  children,
+}: {
+  title?: string;
+  className?: string;
+  children: ReactNode;
+}) {
   return (
-    <section className="panel">
+    <section className={className ? `panel ${className}` : "panel"}>
       {title && <div className="panel-title">{title}</div>}
       {children}
     </section>
@@ -114,26 +131,44 @@ export function Progress({ fraction, label }: { fraction: number | null; label?:
   return <span className="status-meta">{parts.join(" · ")}</span>;
 }
 
-/** Auto-scrolling log view, pinned to the bottom unless the user scrolls up. */
+/** The log, collapsed to its last line. Expanded it auto-scrolls, pinned to
+ *  the bottom unless the user scrolls up. */
 export function LogView({ lines }: { lines: string[] }) {
+  const [expanded, setExpanded] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const pinned = useRef(true);
 
   useEffect(() => {
     const el = ref.current;
     if (el && pinned.current) el.scrollTop = el.scrollHeight;
-  }, [lines]);
+  }, [lines, expanded]);
 
   return (
-    <div
-      className="log"
-      ref={ref}
-      onScroll={(e) => {
-        const el = e.currentTarget;
-        pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
-      }}
-    >
-      {lines.join("\n")}
+    <div className="log-wrap">
+      {expanded ? (
+        <div
+          className="log"
+          ref={ref}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            pinned.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+          }}
+        >
+          {lines.join("\n")}
+        </div>
+      ) : (
+        <div className="log log-tail">{lines[lines.length - 1] ?? ""}</div>
+      )}
+      {lines.length > 1 && (
+        <button
+          type="button"
+          className="log-toggle"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+        >
+          {expanded ? "collapse" : `${lines.length} lines`}
+        </button>
+      )}
     </div>
   );
 }
@@ -160,9 +195,29 @@ export function Artifacts({ jobId, artifacts }: { jobId: string; artifacts: JobV
 /**
  * The whole job UI in one component: status, progress, log, artifacts.
  * Drop this under any tool's form and that tool is done.
+ *
+ * `compact` drops the log, for tools that put this beside the form rather
+ * than under it. A failed job shows it regardless -- that is the one time the
+ * output is the point.
  */
-export function JobRunner({ job, onCancel }: { job: JobView; onCancel?: () => void }) {
-  if (job.state === "idle") return null;
+export function JobRunner({
+  job,
+  onCancel,
+  compact,
+}: {
+  job: JobView;
+  onCancel?: () => void;
+  compact?: boolean;
+}) {
+  if (job.state === "idle") {
+    // A panel rather than nothing: pages that give the runner a fixed slot
+    // would otherwise render a hole in the layout until the first run.
+    return (
+      <Panel title="Run">
+        <div className="empty">Nothing running.</div>
+      </Panel>
+    );
+  }
   return (
     <Panel title="Run">
       <div className="row" style={{ justifyContent: "space-between" }}>
@@ -179,7 +234,7 @@ export function JobRunner({ job, onCancel }: { job: JobView; onCancel?: () => vo
 
       {job.error && <div className="field"><span className="error">{job.error}</span></div>}
 
-      <LogView lines={job.lines} />
+      {(!compact || job.state === "failed") && <LogView lines={job.lines} />}
       {job.id && <Artifacts jobId={job.id} artifacts={job.artifacts} />}
     </Panel>
   );

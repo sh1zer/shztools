@@ -3,9 +3,13 @@
    rounded, and nothing outside .status carries a hue. */
 
 /* ---- layout ---- */
+/* Two independent scroll areas, not one page that scrolls past a tall
+   sidebar: the sidebar owns the full viewport height, so its footer sits at
+   the bottom of the *screen* rather than the bottom of the content. */
 .app {
   display: flex;
-  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -17,6 +21,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--s5);
+  height: 100%;
+  overflow-y: auto;
 }
 
 .brand {
@@ -69,16 +75,37 @@
 .main {
   flex: 1;
   min-width: 0;
+  height: 100%;
+  overflow-y: auto;
   padding: var(--s6) var(--s6) var(--s7);
+  display: flex;
+  flex-direction: column;
 }
 
 .page {
-  max-width: 820px;
+  /* width, not just max-width: .main is a flex column, and a flex item with
+     auto cross-axis margins is never stretched -- without this the page
+     shrink-wraps its content instead of filling the column. */
+  width: 100%;
+  max-width: 1040px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--s5);
 }
+/* A page that fits the viewport instead of scrolling past it. One panel
+   inside takes whatever height the others leave, so nothing is sized against
+   a guess at how tall the rest of the page is. Below the floor it overflows
+   and .main scrolls as usual. */
+.page-fill {
+  flex: 1;
+  min-height: 0;
+}
+.panel-fill {
+  flex: 1;
+  min-height: 0;
+}
+
 .page-head h1 {
   margin: 0;
   font-size: 24px;
@@ -88,6 +115,27 @@
   margin: var(--s1) 0 0;
   color: var(--text-dim);
   font-size: 14px;
+}
+
+/* The form and its run status sit side by side, so whatever a tool puts
+   below them starts above the fold instead of under a tall log. */
+.tool-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: var(--s5);
+  align-items: stretch;
+}
+@media (max-width: 900px) {
+  .tool-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Stacked, there is no leftover height to take -- everything sizes to its
+     content and the page scrolls. */
+  .page-fill,
+  .panel-fill {
+    flex: none;
+    min-height: auto;
+  }
 }
 
 /* ---- panel ---- */
@@ -244,6 +292,38 @@
 
 
 /* ---- log ---- */
+/* Collapsed to its last line by default. A finished download is a thousand
+   lines of yt-dlp progress nobody reads, and the run panel is more useful
+   short; the toggle is there for when a job fails and you do want them. */
+.log-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s2);
+}
+.log-wrap .log {
+  flex: 1;
+  min-width: 0;
+}
+.log-tail {
+  max-height: none;
+  overflow: hidden;
+  white-space: pre;
+  text-overflow: ellipsis;
+}
+.log-toggle {
+  flex: none;
+  padding: var(--s3) 0;
+  background: none;
+  border: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+.log-toggle:hover {
+  color: var(--text);
+}
+
 .log {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -333,14 +413,23 @@
 }
 
 @media (max-width: 720px) {
+  /* Stacked, the split scroll makes no sense -- the page scrolls as one. */
   .app {
     flex-direction: column;
+    height: auto;
+    overflow: visible;
   }
   .sidebar {
     width: 100%;
     flex: none;
+    height: auto;
+    overflow: visible;
     border-right: none;
     border-bottom: 1px solid var(--border);
+  }
+  .main {
+    height: auto;
+    overflow: visible;
   }
   .nav {
     flex-direction: row;

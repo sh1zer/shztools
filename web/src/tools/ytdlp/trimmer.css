@@ -1,0 +1,291 @@
+/* Trimmer: a video preview with two clamps you drag to bound a segment.
+   Tokens only -- no hex, no radius, no font literal (see ui/tokens.css).
+   The clamps are drawn as square brackets on purpose: they are the same
+   motif as `[ RUNNING ]`, reused for the other thing you read at a glance. */
+
+.trim {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  flex: 1;
+  min-height: 0;
+}
+
+/* The video and its control strip share one border so they read as one
+   player, rather than a video with a toolbar floating under it. */
+.trim-player {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* Takes the height the track and the readouts below it do not want, so the
+     panel fits the viewport without anyone guessing at a vh figure. */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.trim-video {
+  display: block;
+  width: 100%;
+  flex: 1;
+  /* A floor rather than a cap: on a viewport too short for everything, the
+     video stops shrinking and .main scrolls instead. */
+  min-height: 180px;
+  object-fit: contain;
+}
+.trim-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s1) var(--s2);
+  border-top: 1px solid var(--border);
+}
+/* Sits below the native control bar rather than over it: an overlay would
+   fight the browser's own scrubber for the same corner. */
+.trim-rewind {
+  padding: var(--s1) var(--s2);
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.trim-rewind:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+.trim-rewind:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .trim,
+  .trim-player {
+    flex: none;
+    min-height: auto;
+  }
+  .trim-video {
+    flex: none;
+    max-height: 50vh;
+  }
+}
+
+/* ---- track ---- */
+.trim-track {
+  position: relative;
+  height: 48px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  /* Pointer drags must not be stolen by touch scrolling, and the wheel is
+     bound to zoom rather than the page scrolling. */
+  touch-action: none;
+  user-select: none;
+  /* Zoomed in, a clamp can sit outside the window; clip it rather than let it
+     escape the track. */
+  overflow: hidden;
+}
+
+/* The kept segment is a value step up from the recessed track: same rule as
+   every other piece of structure here, no fill colour spent on it. */
+.trim-sel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--surface-2);
+  pointer-events: none;
+}
+
+.trim-play {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--text-dim);
+  pointer-events: none;
+}
+/* A 1px line is easy to lose, so the playhead gets a nub to catch the eye --
+   dimmer than the clamps, which stay the brightest thing on the track. */
+.trim-play::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 7px;
+  height: 4px;
+  background: var(--text-dim);
+}
+
+/* ---- clamps ---- */
+.trim-clamp {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  width: 22px;
+  transform: translateX(-50%);
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: ew-resize;
+  touch-action: none;
+}
+.trim-clamp .jaw {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  transition: opacity 0.12s ease;
+  opacity: 0.85;
+}
+/* Both jaws put their spine on the clamp's centre line, so the bar sits
+   exactly on the timestamp it reports. */
+.trim-clamp[data-edge="start"] .jaw {
+  left: 10px;
+  border-left: 2px solid var(--accent);
+}
+.trim-clamp[data-edge="end"] .jaw {
+  right: 10px;
+  border-right: 2px solid var(--accent);
+}
+.trim-clamp:hover .jaw,
+.trim-clamp:focus-visible .jaw,
+.trim-clamp[data-dragging="true"] .jaw {
+  opacity: 1;
+}
+.trim-clamp:focus-visible {
+  outline-offset: 0;
+}
+
+/* ---- overview strip ---- */
+/* Only rendered when zoomed. Shows the whole video once, with the selection
+   as a filled block and the visible window as an outlined one -- otherwise a
+   zoomed track gives no clue where in the video you are. */
+.trim-map {
+  position: relative;
+  height: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.trim-map[data-panning="true"] {
+  cursor: grabbing;
+}
+/* The blocks are readouts, not targets: every pointer event belongs to the
+   strip itself, so the drag maths only ever has one element to measure. */
+.trim-map-sel,
+.trim-map-view {
+  position: absolute;
+  pointer-events: none;
+}
+.trim-map-sel {
+  top: 0;
+  bottom: 0;
+  background: var(--surface-2);
+}
+.trim-map-view {
+  top: -1px;
+  bottom: -1px;
+  border: 1px solid var(--accent);
+  background: var(--accent-quiet);
+  min-width: 2px;
+}
+
+/* ---- readout ---- */
+.trim-times {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+.trim-time {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+}
+.trim-time > span,
+.trim-set {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+/* The label is the control: clicking it sets that clamp to the playhead. The
+   dotted rule is what says so, since a bare word does not look pressable. */
+.trim-set {
+  padding: 0 0 1px;
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted var(--border-strong);
+  font-family: inherit;
+  cursor: pointer;
+}
+.trim-set:hover {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+/* Carries data, so --text-dim rather than --text-faint. */
+.trim-time output {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.trim-time input {
+  width: 10ch;
+  padding: var(--s1) var(--s2);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.trim-time input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* The one action in the panel, pushed to the far end of its row. */
+.trim-go {
+  margin-left: auto;
+}
+
+.trim-reset {
+  padding: var(--s1) var(--s2);
+  font-size: 12px;
+}
+
+/* ---- zoom ---- */
+.trim-zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  /* Pushed to the far end of the readout row: it describes the track, not the
+     selection the rest of the row reports. */
+  margin-left: auto;
+}
+.trim-zoom .btn {
+  padding: var(--s1) var(--s2);
+  font-family: var(--mono);
+  min-width: 3ch;
+}
+.trim-zoom output {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  min-width: 4ch;
+  text-align: center;
+}
+
+.trim-note {
+  font-size: 12px;
+  color: var(--text-faint);
+}

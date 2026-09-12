@@ -13,8 +13,11 @@ import os
 
 from .contract import LocalTool, RemoteTool, ToolAdapter
 
+# A tool with no page in web/src/tools/registry.ts stays out of the nav --
+# `clip` is driven by the yt-dlp page, not opened on its own.
 LOCAL_TOOLS = [
     "server.tools.ytdlp",
+    "server.tools.clip",
 ]
 
 

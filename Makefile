@@ -12,12 +12,14 @@ dev:
 	@echo "UI  -> http://$(TS_IP):5173"
 	@echo "API -> http://127.0.0.1:8787"
 	@trap 'kill 0' EXIT INT TERM; \
-	uv run uvicorn server.main:app --reload --host 127.0.0.1 --port 8787 & \
+	uv run uvicorn server.main:app --reload --timeout-graceful-shutdown 2 --host 127.0.0.1 --port 8787 & \
 	cd web && npm run dev -- --host 0.0.0.0 & \
 	wait
 
+# --timeout-graceful-shutdown: a job's SSE stream stays open as long as the
+# browser tab does, and --reload otherwise waits on it forever.
 api:
-	uv run uvicorn server.main:app --reload --host 127.0.0.1 --port 8787
+	uv run uvicorn server.main:app --reload --timeout-graceful-shutdown 2 --host 127.0.0.1 --port 8787
 
 web:
 	cd web && npm run dev -- --host 0.0.0.0
